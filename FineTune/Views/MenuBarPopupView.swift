@@ -101,6 +101,14 @@ struct MenuBarPopupView: View {
 
     // MARK: - Resolved Dimensions
 
+    /// Visible height of the screen the menu bar item is on; refreshed whenever the popup opens.
+    @State private var screenVisibleHeight: CGFloat = MenuBarPopupView.statusItemScreenVisibleHeight()
+
+    private static func statusItemScreenVisibleHeight() -> CGFloat {
+        let statusBarWindow = NSApp.windows.first { String(describing: type(of: $0)).contains("NSStatusBarWindow") }
+        return (statusBarWindow?.screen ?? NSScreen.main)?.visibleFrame.height ?? .greatestFiniteMagnitude
+    }
+
     private var popupDimensions: PopupDimensions {
         audioEngine.settingsManager.appSettings.popupSize.dimensions
     }
@@ -128,7 +136,7 @@ struct MenuBarPopupView: View {
                     mainContent(scrollProxy: proxy)
                 }
                 .scrollIndicators(.never)
-                .frame(maxHeight: popupDimensions.maxContentHeight)
+                .frame(maxHeight: popupDimensions.contentHeight(fittingVisibleHeight: screenVisibleHeight))
                 .onChange(of: selectedRow) { _, newFocus in
                     guard let newFocus else { return }
                     withAnimation(DesignTokens.Animation.hover) {
@@ -205,6 +213,7 @@ struct MenuBarPopupView: View {
                   String(describing: type(of: window)).contains("FluidMenuBarExtra")
             else { return }
             isPopupVisible = true
+            screenVisibleHeight = Self.statusItemScreenVisibleHeight()
             popupVisibility.isVisible = true
             audioEngine.bluetoothDeviceMonitor.refresh()
             syncNavOrder()

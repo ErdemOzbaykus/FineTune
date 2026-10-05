@@ -101,6 +101,15 @@ struct PopupDimensions: Equatable {
     /// usable height after the menu bar, since FluidMenuBarExtra does not clamp
     /// the popup against `screen.visibleFrame` vertically.
     let maxContentHeight: CGFloat
+
+    /// Space the popup needs besides the scrollable body: the header row and the gap under
+    /// the menu bar. The padding is added on top, per size.
+    static let chromeHeight: CGFloat = 64
+
+    /// The body ceiling, shrunk so the whole popup fits the screen's visible height (#430).
+    func contentHeight(fittingVisibleHeight visible: CGFloat) -> CGFloat {
+        min(maxContentHeight, max(200, visible - 2 * contentPadding - Self.chromeHeight))
+    }
 }
 
 extension MenuBarPopupSize {
