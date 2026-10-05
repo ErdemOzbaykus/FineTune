@@ -165,6 +165,9 @@ struct DeviceRow: View {
 
                 Spacer(minLength: 0)
 
+                // AirPods listening modes (hidden unless the device exposes them)
+                AirPodsModePicker(device: device)
+
                 // AutoEQ picker inside the name area so slider length stays consistent
                 if device.supportsAutoEQ,
                    let profileManager = autoEQProfileManager,
