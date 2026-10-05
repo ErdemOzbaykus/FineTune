@@ -1240,6 +1240,14 @@ final class AudioEngine {
         }
     }
 
+    /// macOS switches to a newly connected Bluetooth device (AirPods etc.) on its own: the
+    /// last connected wins. Keep that switch instead of reverting it to the priority order,
+    /// which only decides the fallback when a device disconnects.
+    private func acceptsAutoSwitch(_ uid: String) -> Bool {
+        let transport = deviceMonitor.device(for: uid)?.id.readTransportType()
+        return transport == .bluetooth || transport == .bluetoothLE
+    }
+
     /// Restores the default to `lastConfirmedDefaultUID` (what the user/FineTune intended).
     /// Falls back to highest-priority device if the confirmed device is gone.
     private func restoreConfirmedDefault() {
@@ -1540,9 +1548,14 @@ final class AudioEngine {
             // A higher-priority device reconnected — switch to it
             reEvaluateOutputDefault()
         } else if !isNewDeviceHigherPriority, currentDefault == deviceUID {
-            // macOS already auto-switched to the lower-priority device — restore
-            // what the user was on (not highest priority — they may have chosen a mid-priority device)
-            restoreConfirmedDefault()
+            if acceptsAutoSwitch(deviceUID) {
+                lastConfirmedDefaultUID = deviceUID
+                routeFollowsDefaultApps(to: deviceUID)
+            } else {
+                // macOS already auto-switched to the lower-priority device — restore
+                // what the user was on (not highest priority — they may have chosen a mid-priority device)
+                restoreConfirmedDefault()
+            }
         }
 
         // Cancel any existing PENDING_AUTOSWITCH before entering a new one.
@@ -1700,6 +1713,16 @@ final class AudioEngine {
                     routeFollowsDefaultApps(to: newDefaultUID)
                     let deviceName = deviceMonitor.device(for: newDefaultUID)?.name ?? newDefaultUID
                     logger.info("Accepted user change to \(deviceName) (settled >1s)")
+                    return
+                }
+
+                // Bluetooth devices: macOS's own switch to the newly connected device stands.
+                if acceptsAutoSwitch(pendingUID) {
+                    timeoutTask.cancel()
+                    outputPriorityState = .stable
+                    lastAutoSwitchOverrideTime = nil
+                    lastConfirmedDefaultUID = newDefaultUID
+                    routeFollowsDefaultApps(to: newDefaultUID)
                     return
                 }
 
