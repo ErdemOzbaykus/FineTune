@@ -20,7 +20,10 @@ struct AirPodsModePicker: View {
     private let popoverWidth: CGFloat = 200
 
     var body: some View {
-        Group {
+        // The zero-size anchor keeps `.task` alive while the control is hidden (an empty Group
+        // would never run it).
+        HStack(spacing: 0) {
+            Color.clear.frame(width: 0, height: 0)
             if controlID != nil {
                 triggerButton
                     .background(
