@@ -47,7 +47,7 @@ Auto-detection gets it right for most devices, but some USB DACs and HDMI/Displa
 
 FineTune uses a **device priority list** to decide which output device to use. When a device connects, FineTune only switches to it if it's ranked higher than the current device. When a device disconnects, FineTune falls back to the next highest-priority device that's still connected.
 
-By default, devices are added to the bottom of the list in the order they're first seen, except a Bluetooth device (e.g. AirPods) connecting for the first time, which goes to the top so the switch macOS makes is kept. Since your Mac's built-in speakers are always connected, they end up at the top (highest priority), so FineTune won't auto-switch to headphones, external speakers, or other devices when they connect.
+By default, devices are added to the bottom of the list in the order they're first seen. Since your Mac's built-in speakers are always connected, they end up at the top (highest priority), so FineTune won't auto-switch to headphones, external speakers, or other devices when they connect.
 
 **This is a one-time setup.** Once you set your preferred order, it's saved permanently and works across app restarts.
 

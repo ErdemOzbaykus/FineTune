@@ -1442,12 +1442,8 @@ final class AudioEngine {
 
     /// Called when a device appears - switches pinned apps back to their preferred device
     private func handleDeviceConnected(_ deviceUID: String, name deviceName: String) {
-        // Register newly connected device in priority list. A first-time Bluetooth device
-        // (e.g. AirPods) goes on top so FineTune keeps macOS's switch instead of undoing it
-        // because the always-connected built-in speakers outrank an appended device.
-        let connectTransport = deviceMonitor.device(for: deviceUID)?.id.readTransportType()
-        settingsManager.ensureDeviceInPriority(
-            deviceUID, atTop: connectTransport == .bluetooth || connectTransport == .bluetoothLE)
+        // Register newly connected device in priority list
+        settingsManager.ensureDeviceInPriority(deviceUID)
 
         var affectedApps: [AudioApp] = []
         var tapsToSwitch: [any ProcessTapControlling] = []

@@ -481,15 +481,9 @@ final class SettingsManager {
         scheduleSave()
     }
 
-    /// Registers an unknown device. `atTop` ranks it highest, mirroring macOS where the
-    /// device you just connected wins; known devices keep their user-set rank.
-    func ensureDeviceInPriority(_ uid: String, atTop: Bool = false) {
+    func ensureDeviceInPriority(_ uid: String) {
         guard !settings.outputDevicePriority.contains(uid) else { return }
-        if atTop {
-            settings.outputDevicePriority.insert(uid, at: 0)
-        } else {
-            settings.outputDevicePriority.append(uid)
-        }
+        settings.outputDevicePriority.append(uid)
         scheduleSave()
     }
 
