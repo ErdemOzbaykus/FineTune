@@ -44,6 +44,7 @@ final class AudioProcessMonitor: AudioProcessMonitoring {
         "com.apple.CoreSpeech",
         "com.apple.VoiceControl",
         "com.apple.voicecontrol",
+        "com.apple.Sound-Settings", // Sound pane extension joins CoreAudio while open (#427)
     ]
 
     /// Process names for system daemons (fallback when bundle ID is nil or different format)
@@ -58,17 +59,17 @@ final class AudioProcessMonitor: AudioProcessMonitoring {
     ]
 
     /// Returns true if the bundle ID or process name indicates a system daemon that should be filtered
-    private func isSystemDaemon(bundleID: String?, name: String) -> Bool {
+    static func isSystemDaemon(bundleID: String?, name: String) -> Bool {
         // Check bundle ID prefixes
         if let bundleID {
-            if Self.systemDaemonPrefixes.contains(where: { bundleID.hasPrefix($0) }) {
+            if systemDaemonPrefixes.contains(where: { bundleID.hasPrefix($0) }) {
                 return true
             }
         }
 
         // Check process name (handles nil bundleID and format variations)
         let lowercaseName = name.lowercased()
-        if Self.systemDaemonNames.contains(where: { lowercaseName.hasPrefix($0) }) {
+        if systemDaemonNames.contains(where: { lowercaseName.hasPrefix($0) }) {
             return true
         }
 
@@ -236,7 +237,7 @@ final class AudioProcessMonitor: AudioProcessMonitoring {
                 let bundleID = resolvedApp?.bundleIdentifier ?? objectID.readProcessBundleID()
 
                 // Skip system daemons (siri, coreaudio, etc.) - they shouldn't appear in the apps list
-                if isSystemDaemon(bundleID: bundleID, name: name) { continue }
+                if Self.isSystemDaemon(bundleID: bundleID, name: name) { continue }
 
                 // Merge helper process objectIDs into parent app entry
                 if let existing = appsByPID[parentPID] {
