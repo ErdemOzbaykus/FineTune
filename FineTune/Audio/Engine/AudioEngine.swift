@@ -350,8 +350,16 @@ final class AudioEngine {
         }
 
         processMonitor.onAppsChanged = { [weak self] apps in
-            self?.applyPersistedSettings()
-            self?.scheduleStaleCleanup()
+            guard let self else { return }
+            // A tap only captures the process objects it was built with. Apps like Spotify open a
+            // new audio process object on track change; without a rebuild it plays untapped.
+            for app in apps {
+                guard let tap = self.taps[app.id],
+                      !Set(app.processObjectIDs).isSubset(of: tap.app.processObjectIDs) else { continue }
+                Task { @MainActor in await self.recreateTap(for: app.id) }
+            }
+            self.applyPersistedSettings()
+            self.scheduleStaleCleanup()
         }
 
         // Priority order closures — only for concrete AudioDeviceMonitor
